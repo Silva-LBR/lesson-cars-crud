@@ -53,7 +53,7 @@ def browser(pytestconfig):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as playwright:
-        options = {"headless": not pytestconfig.getoption("--headed")}
+        options = {"headless": not pytestconfig.getoption("--headed", False)}
         executable = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
         if executable:
             options["executable_path"] = executable
@@ -73,3 +73,12 @@ def page(browser):
         yield page
     finally:
         context.close()
+
+
+def pytest_configure(config):
+    # --headed is declared right above, but pytest only loads this conftest after
+    # it has parsed the command line when the run relies on pytest.ini's
+    # testpaths (a plain `pytest -q`). Make sure the option always exists so the
+    # browser fixture never raises "ValueError: no option named 'headed'".
+    if not hasattr(config.option, "headed"):
+        config.option.headed = False
