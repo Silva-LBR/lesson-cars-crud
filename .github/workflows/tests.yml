@@ -1,0 +1,33 @@
+name: Cars CRUD Test
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Show Python version
+        run: python --version
+      - name: install requirements-dev.txt
+        run: python -m pip install -r requirements-dev.txt
+      - name: install Chromium and its Linux dependencies
+        run : python -m playwright install --with-deps Chromium
+      - name: run unit tests
+        run: python -m pytest tests/unit -q
+      - name: run integration tests
+        run: pyhton -m pytest tests/integration -q
+      - name: runAPI tests
+        run: python -m pytest tests/api -q
+      - name: run E2E tests
+        run : python -m pytest tests/e2e -q 
