@@ -26,7 +26,7 @@ jobs:
       - name: run unit tests
         run: python -m pytest tests/unit -q
       - name: run integration tests
-        run: pyhton -m pytest tests/integration -q
+        run: python -m pytest tests/integration -q
       - name: runAPI tests
         run: python -m pytest tests/api -q
       - name: run E2E tests
