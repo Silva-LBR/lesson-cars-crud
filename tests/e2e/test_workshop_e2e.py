@@ -51,19 +51,35 @@ def test_user_edits_car_and_change_survives_reload(page, live_server):
     expect(page.get_by_role("heading", name="Honda Civic")).to_be_visible()
 
     page.get_by_role("link", name="Edit car").click()
-    page.get_by_label("Model", exact=True).fill("Accord")
-    page.get_by_label("Year", exact=True).fill("2023")
 
-    # DIAGNOSTIC: what the form fields actually hold right before saving.
+    # DIAGNOSTIC: follow how the form fields change over time. The PUT below
+    # sent the OLD values even though the DOM held the new ones, so we need to
+    # see when the value changes and which element the locator filled.
+    def snapshot(label):
+        state = page.evaluate(
+            "() => ({"
+            " model: document.querySelector('#model').value,"
+            " year: document.querySelector('#year').value,"
+            " forms: document.querySelectorAll('form').length,"
+            " models: document.querySelectorAll('#model').length"
+            "})"
+        )
+        print(f"[SNAP {label}] {state}")
+
+    snapshot("after edit click")
+    model_box = page.get_by_label("Model", exact=True)
+    model_box.fill("Accord")
+    snapshot("after fill Model")
+    page.get_by_label("Year", exact=True).fill("2023")
+    snapshot("after fill Year")
+
     print(
-        "=== FORM STATE BEFORE SAVE ===",
-        page.evaluate(
-            "() => ({model: document.querySelector('#model').value,"
-            " year: document.querySelector('#year').value})"
-        ),
+        "[REAL INPUT]",
+        model_box.evaluate("el => ({id: el.id, name: el.name, value: el.value})"),
     )
 
     page.get_by_role("button", name="Save changes").click()
+    snapshot("right after save click")
 
     # DIAGNOSTIC: remove this try/except once the CI failure is understood.
     # It prints what the page actually looked like at the moment of failure
