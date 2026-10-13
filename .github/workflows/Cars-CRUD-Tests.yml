@@ -22,7 +22,7 @@ jobs:
       - name: install requirements-dev.txt
         run: python -m pip install -r requirements-dev.txt
       - name: install chromium and its Linux dependencies
-        run : python -m playwright install --with-deps Chromium
+        run : python -m playwright install --with-deps chromium
       - name: run unit tests
         run: python -m pytest tests/unit -q
       - name: run integration tests
