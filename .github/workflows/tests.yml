@@ -1,8 +1,8 @@
-name: Cars CRUD Test
+name: Cars CRUD Tests
+
 on:
-  push:
+  pull_request:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,23 +11,41 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout the repository
+      - name: Download the repository
         uses: actions/checkout@v7
-      - name: Set up Python
+
+      - name: Set up Python 3.12
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+
       - name: Show Python version
         run: python --version
-      - name: install requirements-dev.txt
+
+      - name: Install requirements-dev.txt
         run: python -m pip install -r requirements-dev.txt
-      - name: install chromium and its Linux dependencies
-        run : python -m playwright install --with-deps Chromium
-      - name: run unit tests
+
+      - name: Install Chromium and its Linux dependencies
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run unit tests
         run: python -m pytest tests/unit -q
-      - name: run integration tests
-        run: pyhton -m pytest tests/integration -q
-      - name: runAPI tests
+
+      - name: Run integration tests
+        run: python -m pytest tests/integration -q
+
+      - name: Run API tests
         run: python -m pytest tests/api -q
-      - name: run E2E tests
-        run : python -m pytest tests/e2e -q 
+
+      - name: Run E2E tests
+        run: python -m pytest tests/e2e -q
+
+      # DIAGNOSTIC: remove this step together with the try/except in
+      # tests/e2e/test_workshop_e2e.py once the failure is understood.
+      - name: Upload E2E failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-screenshot
+          path: e2e-failure.png
+          if-no-files-found: ignore
