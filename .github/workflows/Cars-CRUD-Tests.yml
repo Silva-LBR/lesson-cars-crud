@@ -39,3 +39,14 @@ jobs:
 
       - name: Run E2E tests
         run: python -m pytest tests/e2e -q
+
+      # DIAGNOSTIC: remove this step together with the try/except in
+      # tests/e2e/test_workshop_e2e.py once the failure is understood.
+      - name: Upload E2E failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-screenshot
+          path: e2e-failure.png
+          if-no-files-found: ignore
+
