@@ -19,11 +19,24 @@ def test_user_edits_car_and_change_survives_reload(page, live_server):
     # DIAGNOSTIC: remove these listeners once the CI failure is understood.
     # They record the HTTP calls the page makes and any JavaScript errors.
     events = []
-    page.on("request", lambda r: events.append(f"REQ  {r.method} {r.url}"))
-    page.on(
-        "response",
-        lambda r: events.append(f"RESP {r.status} {r.request.method} {r.url}"),
-    )
+
+    def on_request(request):
+        # DIAGNOSTIC: the body of the PUT is what distinguishes "saved the old
+        # values" from "the backend did not persist the new values".
+        if request.method == "PUT":
+            events.append(f"REQ  PUT {request.url} body={request.post_data}")
+
+    def on_response(response):
+        line = f"RESP {response.status} {response.request.method} {response.url}"
+        if response.request.method in ("PUT", "POST"):
+            try:
+                line += f"  body={response.text()[:200]}"
+            except Exception as exc:  # noqa: BLE001
+                line += f"  <body unreadable: {exc}>"
+        events.append(line)
+
+    page.on("request", on_request)
+    page.on("response", on_response)
     page.on("pageerror", lambda e: events.append(f"JSERR {e}"))
 
     page.goto(f"{live_server}/cars/new")
