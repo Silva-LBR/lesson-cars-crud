@@ -16,6 +16,16 @@ def test_user_creates_car_in_browser(page, live_server):
 
 
 def test_user_edits_car_and_change_survives_reload(page, live_server):
+    # DIAGNOSTIC: remove these listeners once the CI failure is understood.
+    # They record the HTTP calls the page makes and any JavaScript errors.
+    events = []
+    page.on("request", lambda r: events.append(f"REQ  {r.method} {r.url}"))
+    page.on(
+        "response",
+        lambda r: events.append(f"RESP {r.status} {r.request.method} {r.url}"),
+    )
+    page.on("pageerror", lambda e: events.append(f"JSERR {e}"))
+
     page.goto(f"{live_server}/cars/new")
     page.get_by_label("Make", exact=True).fill("Honda")
     page.get_by_label("Model", exact=True).fill("Civic")
@@ -52,6 +62,9 @@ def test_user_edits_car_and_change_survives_reload(page, live_server):
         except Exception as exc:  # noqa: BLE001
             print("SHOT : <failed>", exc)
         print("BODY :", page.locator("body").inner_text()[:400].replace("\n", " | "))
+        print("--- HTTP / JS EVENTS ---")
+        for line in events:
+            print(line)
         print("=== END DIAGNOSTIC ===")
         raise
 
