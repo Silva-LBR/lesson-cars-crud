@@ -20,4 +20,4 @@ jobs:
       - name: Show Python version
         run: python --version
       - name: Print a message
-        run: python -c "raise SystemExit(1)"
+        run: python -c "print('Hello from GitHub Actions!')"
