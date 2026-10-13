@@ -28,7 +28,11 @@ def test_user_edits_car_and_change_survives_reload(page, live_server):
 
     def on_response(response):
         line = f"RESP {response.status} {response.request.method} {response.url}"
-        if response.request.method in ("PUT", "POST"):
+        # DIAGNOSTIC: bodies of the write requests, plus the car GET that
+        # loadForm() uses to populate the edit form.
+        if response.request.method in ("PUT", "POST") or response.url.endswith(
+            "/api/cars/1"
+        ):
             try:
                 line += f"  body={response.text()[:200]}"
             except Exception as exc:  # noqa: BLE001
@@ -49,6 +53,16 @@ def test_user_edits_car_and_change_survives_reload(page, live_server):
     page.get_by_role("link", name="Edit car").click()
     page.get_by_label("Model", exact=True).fill("Accord")
     page.get_by_label("Year", exact=True).fill("2023")
+
+    # DIAGNOSTIC: what the form fields actually hold right before saving.
+    print(
+        "=== FORM STATE BEFORE SAVE ===",
+        page.evaluate(
+            "() => ({model: document.querySelector('#model').value,"
+            " year: document.querySelector('#year').value})"
+        ),
+    )
+
     page.get_by_role("button", name="Save changes").click()
 
     # DIAGNOSTIC: remove this try/except once the CI failure is understood.
