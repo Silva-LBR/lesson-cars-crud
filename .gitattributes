@@ -1,0 +1,47 @@
+# Git 属性：控制文件在「仓库里」的换行符与文本处理方式。
+#
+# 为什么需要它：Windows 上 git 常见配置是 core.autocrlf=true，
+# 检出时把 LF 转成 CRLF。这对应用代码无害，但 Linux 容器里的
+# shell 脚本、以及 Dockerfile 这类文件，一旦带上 CRLF 就会出问题：
+#   /bin/bash^M: bad interpreter: No such file or directory
+# 这里显式规定那些必须保持 LF 的文件。
+
+# 未特别指定的文件：由 git 自动判断是否为文本并做规范化
+* text=auto
+
+# 下面这些必须是 LF（进入 Linux 容器执行 / 被 Linux 工具解析）
+*.sh          text eol=lf
+*.bash        text eol=lf
+Dockerfile    text eol=lf
+*.dockerfile  text eol=lf
+.dockerignore text eol=lf
+.gitignore    text eol=lf
+.gitattributes text eol=lf
+*.yml         text eol=lf
+*.yaml        text eol=lf
+*.ini         text eol=lf
+*.toml        text eol=lf
+*.cfg         text eol=lf
+Makefile      text eol=lf
+
+# Windows 专用的批处理脚本必须保持 CRLF，否则 cmd.exe 会出问题
+*.bat         text eol=crlf
+*.cmd         text eol=crlf
+*.ps1         text eol=crlf
+
+# 二进制文件：不要做任何换行符转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.db   binary
+*.sqlite binary
+*.pyc  binary
+
+# 注：本文件只影响「之后」写入仓库的内容。已跟踪的文件如果需要
+# 按新规则重新规范化，执行一次：
+#   git add --renormalize .
+#   git commit -m "Normalize line endings"
