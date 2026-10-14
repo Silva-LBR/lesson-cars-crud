@@ -1,5 +1,8 @@
 name: Cars CRUD - Test and Publish
 
+# CI: runs the four test groups on pull requests and on pushes to main.
+# CD: publishes the Docker image to Docker Hub only after the tests pass on main.
+
 on:
   pull_request:
     branches: [main]
